@@ -43,8 +43,10 @@ jobs:
 
       - name: Debug OIDC claims
         run: |
-          TOKEN=
-          echo "" | cut -d. -f2 | tr "_-" "/+" | awk "{l=length($0)%4; if(l==2)$0=$0"=="; else if(l==3)$0=$0"="; print}" | base64 -d | jq "{iss, sub, aud, exp}"
+          TOKEN=$(curl -sS -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com" | jq -r .value)
+          PAYLOAD=$(echo "$TOKEN" | cut -d. -f2 | tr "_-" "/+")
+          case ${#PAYLOAD}%4 in 2) PAYLOAD="$PAYLOAD==" ;; 3) PAYLOAD="$PAYLOAD=" ;; esac
+          echo "$PAYLOAD" | base64 -d 2>/dev/null | jq "{iss, sub, aud, exp}"
 
       - name: "Configure AWS Credentials"
         uses: aws-actions/configure-aws-credentials@v6.2.3
