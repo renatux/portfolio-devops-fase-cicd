@@ -41,6 +41,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7.0.1
 
+      - name: Debug OIDC claims
+        run: |
+          TOKEN=
+          echo "" | cut -d. -f2 | tr "_-" "/+" | awk "{l=length($0)%4; if(l==2)$0=$0"=="; else if(l==3)$0=$0"="; print}" | base64 -d | jq "{iss, sub, aud, exp}"
+
       - name: "Configure AWS Credentials"
         uses: aws-actions/configure-aws-credentials@v6.2.3
         with:
