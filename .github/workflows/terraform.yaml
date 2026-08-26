@@ -70,5 +70,5 @@ jobs:
         if: github.event.inputs.plan_destroy == 'true'
 
       - name: Terraform Destroy
-        run: terraform apply -destroy -auto-approve tfplandestroy
+        run: terraform destroy -auto-approve
         if: github.event.inputs.destroy == 'true'
