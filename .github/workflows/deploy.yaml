@@ -42,6 +42,8 @@ jobs:
     steps:
       - name: Deploy no EC2
         run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
           echo ${KEY_PORTFOLIO} > ~/.ssh/private_key
           chmod 600 ~/.ssh/private_key
           ssh -i ~/.ssh/private_key -o StrictHostKeyChecking=no ec2-user@${SZPUBLIC_IP} << 'EOF'
