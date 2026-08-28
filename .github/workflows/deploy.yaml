@@ -1,0 +1,54 @@
+name: Pipeline de Deploy do Portfolio
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  job1:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: "Configure AWS Credentials"
+        uses: aws-actions/configure-aws-credentials@v6.2.3
+        with:
+          role-to-assume: arn:aws:iam::614879421397:role/GithubActionsRepoApp
+          aws-region: us-east-1
+      
+      - name: AWS ECR Docker Login
+        uses: elgohr/ecr-login-action@v3
+      - name: Build, tag e push Docker Image
+        run: |
+          docker build -t portfolio-devops-fase-cicd:v0.1 .
+          docker tag portfolio-devops-fase-cicd:v0.1 614879421397.dkr.ecr.us-east-1.amazonaws.com/portfolio-devops-fase-cicd:v0.1
+          docker push 614879421397.dkr.ecr.us-east-1.amazonaws.com/portfolio-devops-fase-cicd:v0.1
+    
+    job2:
+      name: Deploy no AWS EC2
+      env:
+        KEY_PORTFOLIO: ${{ secrets.KEY_PORTFOLIO }}
+        SZPUBLIC_IP: ${{ secrets.SZPUBLIC_IP }}
+      runs-on: ubuntu-latest
+      steps:
+        - name: Deploy no EC2
+          run: |
+            echo ${KEY_PORTFOLIO} > ~/.ssh/private_key
+            chmod 600 ~/.ssh/private_key
+            ssh -i private_key ec2-user@SZPUBLIC_IP << EOF
+              aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 614879421397.dkr.ecr.us-east-1.amazonaws.com
+              docker pull 614879421397.dkr.ecr.us-east-1.amazonaws.com/portfolio-devops-fase-cicd:v0.1
+              docker stop portfolio-devops-fase-cicd || true
+              docker rm portfolio-devops-fase-cicd || true
+              docker run -d --name app-site -p 80:80 614879421397.dkr.ecr.us-east-1.amazonaws.com/portfolio-devops-fase-cicd:v0.1
+              docker ps -a
+            EOF
+            rm ~/.ssh/private_key

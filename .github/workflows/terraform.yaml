@@ -1,4 +1,4 @@
-name: Terraform CI/CD Portfolio
+name: CI/CD Portfolio
 
 on:
   workflow_dispatch: # Permite trigger manual do workflow
