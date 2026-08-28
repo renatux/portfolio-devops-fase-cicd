@@ -32,11 +32,11 @@ jobs:
           docker tag portfolio-devops-fase-cicd:v0.1 614879421397.dkr.ecr.us-east-1.amazonaws.com/portfolio-devops-fase-cicd:v0.1
           docker push 614879421397.dkr.ecr.us-east-1.amazonaws.com/portfolio-devops-fase-cicd:v0.1
     
-    job2:
-      name: Deploy no AWS EC2
-      env:
-        KEY_PORTFOLIO: ${{ secrets.KEY_PORTFOLIO }}
-        SZPUBLIC_IP: ${{ secrets.SZPUBLIC_IP }}
+  job2:
+    name: Deploy no AWS EC2
+    env:
+      KEY_PORTFOLIO: ${{ secrets.KEY_PORTFOLIO }}
+      SZPUBLIC_IP: ${{ secrets.SZPUBLIC_IP }}
       runs-on: ubuntu-latest
       steps:
         - name: Deploy no EC2
