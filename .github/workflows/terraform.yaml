@@ -7,7 +7,7 @@ on:
         description: 'Executar o terraform apply?'
         required: true
         default: 'false'
-        type: choice #Poderia ser do tipo boolean, mas escolhi choice para deixar mais amigável
+        type: choice
         options:
           - true
           - false
@@ -28,7 +28,8 @@ on:
         type: choice
         options:
           - true
-          - false          
+          - false
+
 permissions:
   id-token: write
   contents: read
@@ -41,7 +42,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7.0.1
 
-
       - name: "Configure AWS Credentials"
         uses: aws-actions/configure-aws-credentials@v6.2.3
         with:
@@ -53,22 +53,28 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
-      
+        working-directory: infra
+
       - name: Terraform Validate
         run: terraform validate
-      
+        working-directory: infra
+
       - name: Terraform Plan
         run: terraform plan -out=tfplan
+        working-directory: infra
         continue-on-error: true
-      
+
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
-        if: github.event.inputs.apply == 'true' #Se o input apply for true, executa o terraform apply
+        working-directory: infra
+        if: github.event.inputs.apply == 'true'
 
       - name: Plan Destroy
         run: terraform plan -destroy -out=tfplandestroy
+        working-directory: infra
         if: github.event.inputs.plan_destroy == 'true'
 
       - name: Terraform Destroy
         run: terraform destroy -auto-approve
+        working-directory: infra
         if: github.event.inputs.destroy == 'true'
