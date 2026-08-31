@@ -1,79 +1,18 @@
-name: Destruir Ambiente Portfolio
-
 on:
   workflow_dispatch:
     inputs:
+      ambiente:
+        description: 'Qual ambiente destruir?'
+        required: true
+        type: choice
+        options: [dev, staging, prod]
       confirmacao:
-        description: 'Digite a palavra DESTRUIR para confirmar a destruicao do ambiente'
+        description: 'Digite DESTRUIR'
         required: true
         default: 'NAO'
-      apagar_ecr:
-        description: 'Apagar tambem o repositorio ECR webportfolio?'
-        required: true
-        default: 'false'
-        type: choice
-        options:
-          - 'false'
-          - 'true'
-
-permissions:
-  id-token: write
-  contents: read
-
-jobs:
-  destroy:
-    name: Destroy
-    runs-on: ubuntu-latest
-    if: github.event.inputs.confirmacao == 'DESTRUIR'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7.0.1
-
-      - name: "Configure AWS Credentials"
-        uses: aws-actions/configure-aws-credentials@v6.2.3
-        with:
-          role-to-assume: arn:aws:iam::614879421397:role/GithubActionsRole
-          aws-region: us-east-1
-
-      - name: HashiCorp Setup Terraform
-        uses: hashicorp/setup-terraform@v4.0.1
-
-      - name: Terraform Init
-        run: terraform init
-        working-directory: infra
-
-      - name: Preservar ou limpar o ECR
-        run: |
-          if [ "${{ github.event.inputs.apagar_ecr }}" == "true" ]; then
-            echo "Limpando imagens do webportfolio..."
-            aws ecr list-images --repository-name webportfolio \
-              --query 'imageIds[*]' --output json > /tmp/imgs.json
-            if [ "$(wc -c < /tmp/imgs.json)" -gt 2 ]; then
-              aws ecr batch-delete-image --repository-name webportfolio \
-                --image-ids file:///tmp/imgs.json
-            else
-              echo "Nenhuma imagem para remover"
-            fi
-          else
-            echo "Preservando o ECR: removendo do state para o destroy nao tocar nele"
-            terraform state rm aws_ecr_repository.ecr_portfolio
-          fi
-        working-directory: infra
-
-      - name: Plano de destruicao (revisao)
-        run: terraform plan -destroy -out=destroy.tfplan
-        working-directory: infra
-
-      - name: Terraform Destroy
-        run: terraform apply -auto-approve destroy.tfplan
-        working-directory: infra
-
-      - name: Confirmar state vazio
-        run: |
-          RESTANTE=$(terraform state list)
-          if [ -n "${RESTANTE}" ]; then
-            echo "AINDA HA RECURSOS NO STATE: ${RESTANTE}"
-            exit 1
-          fi
-          echo "State vazio, ambiente destruido com sucesso"
-        working-directory: infra
+# no job:
+#   if: github.event.inputs.confirmacao == 'DESTRUIR'
+#   steps:
+#     - terraform init -backend-config="key=portfoliozzz/${{ github.event.inputs.ambiente }}/terraform.tfstate"
+#     - terraform plan -destroy -var-file=${{ github.event.inputs.ambiente }}.tfvars
+#     - terraform apply -auto-approve destroy.tfplan

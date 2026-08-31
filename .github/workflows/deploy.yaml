@@ -58,7 +58,7 @@ jobs:
                       "Name=instance-state-name,Values=running" \
             --query "Reservations[0].Instances[0].InstanceId" --output text)
           echo "Instancia alvo: ${INSTANCE_ID}"
-          cat > /tmp/ssm-commands.json << 'CMDEOF'
+          cat > /tmp/ssm-commands.json << CMDEOF
           {
             "commands": [
               "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 614879421397.dkr.ecr.us-east-1.amazonaws.com",

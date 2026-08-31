@@ -4,7 +4,7 @@ resource "aws_instance" "website_server" {
   key_name               = "key-portfolio"
   vpc_security_group_ids = [aws_security_group.website_sg.id]
   iam_instance_profile   = aws_iam_instance_profile.ecr_ec2.name
-  user_data              = file("user_data.sh")
+  user_data              = file("${path.module}/user_data.sh")
 
   tags = {
     Name        = "website-server-${var.environment}"
