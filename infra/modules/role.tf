@@ -1,5 +1,5 @@
 resource "aws_iam_role" "ECR-EC2-Role" {
-  name = "ECR-EC2-Role"
+  name = "ECR-EC2-Role-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -24,19 +24,19 @@ resource "aws_iam_role" "ECR-EC2-Role" {
 
 # Instance profile: container que a EC2 usa para assumir a role.
 # Criado explicitamente porque Terraform (aws_iam_role) NAO cria
-# automaticamente, ao contrario do console AWS.
+# automaticamente, ao contrario do console AWS
 resource "aws_iam_instance_profile" "ecr_ec2" {
-  name = "ECR-EC2-Role"
+  name = "ECR-EC2-Role-${var.environment}"
   role = aws_iam_role.ECR-EC2-Role.name
 }
 
-# SSM: permite o deploy via Run Command sem abrir a porta 22.
+# SSM: permite o deploy via Run Command sem abrir a porta 22
 resource "aws_iam_role_policy_attachment" "ssm_core" {
   role       = aws_iam_role.ECR-EC2-Role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-# ECR pull com menor privilegio: somente o repositorio webportfolio.
+# ECR pull com menor privilegio: somente o repositorio webportfolio
 resource "aws_iam_role_policy" "ecr_pull_webportfolio" {
   name = "ECR-Pull-Webportfolio"
   role = aws_iam_role.ECR-EC2-Role.name

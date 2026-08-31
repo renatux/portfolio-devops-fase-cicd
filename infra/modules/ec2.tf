@@ -1,13 +1,13 @@
 resource "aws_instance" "website_server" {
   ami                    = "ami-0332d564d76dbd8d6" #Amazon Linux 2023 kernel-6.18 ami
-  instance_type          = "t3.micro"
+  instance_type          = var.instance_type
   key_name               = "key-portfolio"
   vpc_security_group_ids = [aws_security_group.website_sg.id]
   iam_instance_profile   = aws_iam_instance_profile.ecr_ec2.name
   user_data              = file("user_data.sh")
 
   tags = {
-    Name        = "website-server"
+    Name        = "website-server-${var.environment}"
     Provisioned = "Terraform"
     Cliente     = "portfoliozzz"
   }
