@@ -51,14 +51,14 @@ resource "aws_iam_role_policy" "ecr_pull_webportfolio" {
         Resource = "*"
       },
       {
-        Sid      = "PullSomenteDoWebportfolio"
-        Effect   = "Allow"
-        Action   = [
+        Sid    = "PullSomenteDoWebportfolio"
+        Effect = "Allow"
+        Action = [
           "ecr:BatchCheckLayerAvailability",
           "ecr:BatchGetImage",
           "ecr:GetDownloadUrlForLayer",
         ]
-        Resource = "arn:aws:ecr:us-east-1:614879421397:repository/webportfolio"
+        Resource = "arn:aws:ecr:us-east-1:614879421397:repository/${var.ecr_repository_name}"
       },
     ]
   })

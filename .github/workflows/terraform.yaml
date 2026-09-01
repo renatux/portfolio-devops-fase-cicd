@@ -1,8 +1,17 @@
 name: CI/CD Portfolio
 
 on:
-  workflow_dispatch: # Permite trigger manual do workflow
+  workflow_dispatch:
     inputs:
+      ambiente:
+        description: 'Qual ambiente (dev, staging ou prod)?'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
       apply:
         description: 'Executar o terraform apply?'
         required: true
@@ -11,7 +20,6 @@ on:
         options:
           - true
           - false
-
       destroy:
         description: 'Destruir ambiente?'
         required: true
@@ -20,7 +28,6 @@ on:
         options:
           - true
           - false
-
       plan_destroy:
         description: 'Planejar o destroy do ambiente?'
         required: true
@@ -36,7 +43,7 @@ permissions:
 
 jobs:
   job1:
-    name: Terraform
+    name: Terraform ${{ github.event.inputs.ambiente }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -52,29 +59,28 @@ jobs:
         uses: hashicorp/setup-terraform@v4.0.1
 
       - name: Terraform Init
-        run: terraform init
-        working-directory: infra
+        run: terraform init -input=false
+        working-directory: infra/${{ github.event.inputs.ambiente }}
 
       - name: Terraform Validate
         run: terraform validate
-        working-directory: infra
+        working-directory: infra/${{ github.event.inputs.ambiente }}
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
-        working-directory: infra
-        continue-on-error: true
+        run: terraform plan -input=false -var-file=../common.tfvars -var-file=${{ github.event.inputs.ambiente }}.tfvars -out=tfplan
+        working-directory: infra/${{ github.event.inputs.ambiente }}
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
-        working-directory: infra
+        working-directory: infra/${{ github.event.inputs.ambiente }}
         if: github.event.inputs.apply == 'true'
 
       - name: Plan Destroy
-        run: terraform plan -destroy -out=tfplandestroy
-        working-directory: infra
+        run: terraform plan -destroy -input=false -var-file=../common.tfvars -var-file=${{ github.event.inputs.ambiente }}.tfvars -out=tfplandestroy
+        working-directory: infra/${{ github.event.inputs.ambiente }}
         if: github.event.inputs.plan_destroy == 'true'
 
       - name: Terraform Destroy
-        run: terraform destroy -auto-approve
-        working-directory: infra
+        run: terraform destroy -auto-approve -var-file=../common.tfvars -var-file=${{ github.event.inputs.ambiente }}.tfvars
+        working-directory: infra/${{ github.event.inputs.ambiente }}
         if: github.event.inputs.destroy == 'true'

@@ -15,10 +15,10 @@ resource "aws_instance" "website_server" {
 
 ## Security Group
 resource "aws_security_group" "website_sg" {
-  name   = "website-sg"
-  vpc_id = "vpc-07a6e93cbfbf26de2"
+  name   = "website-sg-${var.environment}"
+  vpc_id = var.vpc_id
   tags = {
-    Name        = "website-sg"
+    Name        = "website-sg-${var.environment}"
     Provisioned = "Terraform"
     Cliente     = "portfoliozzz"
   }

@@ -1,3 +1,7 @@
+# Destroi UM ambiente (dev, staging ou prod). O ECR webportfolio e
+# compartilhado e gerenciado por infra/core/; este workflow nao o toca.
+name: Destruir Ambiente Portfolio
+
 on:
   workflow_dispatch:
     inputs:
@@ -5,14 +9,55 @@ on:
         description: 'Qual ambiente destruir?'
         required: true
         type: choice
-        options: [dev, staging, prod]
+        options:
+          - dev
+          - staging
+          - prod
       confirmacao:
-        description: 'Digite DESTRUIR'
+        description: 'Digite DESTRUIR para confirmar'
         required: true
         default: 'NAO'
-# no job:
-#   if: github.event.inputs.confirmacao == 'DESTRUIR'
-#   steps:
-#     - terraform init -backend-config="key=portfoliozzz/${{ github.event.inputs.ambiente }}/terraform.tfstate"
-#     - terraform plan -destroy -var-file=${{ github.event.inputs.ambiente }}.tfvars
-#     - terraform apply -auto-approve destroy.tfplan
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  destroy:
+    name: Destroy ${{ github.event.inputs.ambiente }}
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirmacao == 'DESTRUIR'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: "Configure AWS Credentials"
+        uses: aws-actions/configure-aws-credentials@v6.2.3
+        with:
+          role-to-assume: arn:aws:iam::614879421397:role/GithubActionsRole
+          aws-region: us-east-1
+
+      - name: HashiCorp Setup Terraform
+        uses: hashicorp/setup-terraform@v4.0.1
+
+      - name: Terraform Init
+        run: terraform init -input=false
+        working-directory: infra/${{ github.event.inputs.ambiente }}
+
+      - name: Plano de destruicao (revisao)
+        run: terraform plan -destroy -input=false -var-file=../common.tfvars -var-file=${{ github.event.inputs.ambiente }}.tfvars -out=destroy.tfplan
+        working-directory: infra/${{ github.event.inputs.ambiente }}
+
+      - name: Terraform Destroy
+        run: terraform apply -auto-approve destroy.tfplan
+        working-directory: infra/${{ github.event.inputs.ambiente }}
+
+      - name: Confirmar state vazio
+        run: |
+          RESTANTE=$(terraform state list)
+          if [ -n "${RESTANTE}" ]; then
+            echo "AINDA HA RECURSOS NO STATE: ${RESTANTE}"
+            exit 1
+          fi
+          echo "State vazio, ambiente destruido com sucesso"
+        working-directory: infra/${{ github.event.inputs.ambiente }}
