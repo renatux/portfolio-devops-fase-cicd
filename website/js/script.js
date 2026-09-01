@@ -43,7 +43,7 @@ function updateStatus() {
 
 // Inicialização quando a página carregar
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 DevOps Lab - Site carregado com sucesso!');
+    console.log('🚀 DevOps Portfolio - Site carregado com sucesso!');
     console.log('🐳 Container Docker ativo');
     console.log('⚡ Servidor web rodando na porta 80');
     
