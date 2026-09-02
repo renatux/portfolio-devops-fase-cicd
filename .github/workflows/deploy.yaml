@@ -46,6 +46,12 @@ jobs:
             --query "Reservations[0].Instances[0].InstanceId" --output text)
           echo "Instancia alvo: ${INSTANCE_ID}"
 
+          # Guard: sem instancia running, o deploy nao pode continuar
+          if [ -z "${INSTANCE_ID}" ] || [ "${INSTANCE_ID}" = "None" ]; then
+            echo "Nenhuma instancia website-server-dev em running. Rode primeiro o terraform apply do ambiente dev (infra/dev)."
+            exit 1
+          fi
+
           cat > /tmp/ssm-commands.json << CMDEOF
           {
             "commands": [
@@ -104,6 +110,12 @@ jobs:
             --query "Reservations[0].Instances[0].InstanceId" --output text)
           echo "Instancia alvo: ${INSTANCE_ID}"
 
+          # Guard: sem instancia running, o deploy nao pode continuar
+          if [ -z "${INSTANCE_ID}" ] || [ "${INSTANCE_ID}" = "None" ]; then
+            echo "Nenhuma instancia website-server-staging em running. Rode primeiro o terraform apply do ambiente staging (infra/staging)."
+            exit 1
+          fi
+
           cat > /tmp/ssm-commands.json << CMDEOF
           {
             "commands": [
@@ -161,6 +173,12 @@ jobs:
                       "Name=instance-state-name,Values=running" \
             --query "Reservations[0].Instances[0].InstanceId" --output text)
           echo "Instancia alvo: ${INSTANCE_ID}"
+
+          # Guard: sem instancia running, o deploy nao pode continuar
+          if [ -z "${INSTANCE_ID}" ] || [ "${INSTANCE_ID}" = "None" ]; then
+            echo "Nenhuma instancia website-server-prod em running. Rode primeiro o terraform apply do ambiente prod (infra/prod)."
+            exit 1
+          fi
 
           cat > /tmp/ssm-commands.json << CMDEOF
           {
