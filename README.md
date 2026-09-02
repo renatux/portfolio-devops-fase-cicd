@@ -175,14 +175,14 @@ Valores comuns (ex.: `vpc_id`) vivem em `infra/common.tfvars`; os workflows pass
 
 ## 10. Decisões Técnicas
 
-- **Um código, três raízes.** O módulo `modules/ec2` carrega o conhecimento; cada raiz de ambiente carrega a identidade (backend + tfvars); o versionamento futuro do módulo carrega a história. Nada de cópia de infra por ambiente.
+- **Um código, três branchs.** O módulo `modules/ec2` carrega o conhecimento; cada branch de ambiente carrega a identidade (backend + tfvars); o versionamento futuro do módulo carrega a história. Nada de cópia de infra por ambiente.
 - **State por ambiente.** Estados separados isolam o erro e permitem destruir um ambiente sem tocar os outros.
 - **ECR compartilhado no `core/`.** A imagem se distingue pela tag, não pelo repositório; o ECR é provisionado uma vez, fora do ciclo de ambiente.
 - **Tag imutável por sha.** O resultado do deploy é determinístico e o rollback é um sha de distância.
 - **SSM em vez de SSH.** Sem chave no servidor, sem porta exposta, execução registrada no CloudTrail.
 - **Guard no deploy.** O pipeline fala a língua do operador: se a instância não existe, ele diz qual apply rodar, em vez de devolver uma validação criptografada da API.
 
-**Limitações honestas:** preço de mercado é um campo fixo no ativo (feed real seria a evolução); sem paginação nas listagens da API; AMI do EC2 fixa no módulo (evolução: `data "aws_ami"`); multi-conta por ambiente é o próximo nível de isolamento em empresas.
+**Limitações honestas:** AMI do EC2 fixa no módulo (evolução: `data "aws_ami"`); multi-conta por ambiente é o próximo nível de isolamento em empresas.
 
 ---
 
